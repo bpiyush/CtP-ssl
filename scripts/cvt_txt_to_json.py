@@ -6,8 +6,8 @@ import json
 
 
 def main():
-    ann_path = 'train_split_1.txt'
-    out_path = 'train.json'
+    ann_path = '/ssd/pbagad/datasets/ucf101/annotations/train_split_1.txt'
+    out_path = '/ssd/pbagad/datasets/ucf101/annotations/train_split_1.json'
     with open(ann_path, 'r') as f:
         lines = f.read().splitlines()
     anns = []

@@ -71,7 +71,8 @@ if __name__ == '__main__':
     # Step 3, convert .avi raw video to zipfile
     prog_bar = mmcv.ProgressBar(len(all_video_name_list))
     for video_name in all_video_name_list:
-        video_path = os.path.join(args.raw_dir, f'{video_name.split("/")[1]}.avi')
+        # video_path = os.path.join(args.raw_dir, f'{video_name.split("/")[1]}.avi')
+        video_path = os.path.join(args.raw_dir, f'{video_name}.avi')
         zip_path = os.path.join(args.out_dir, 'zips', f'{video_name}.zip')
         video_to_zip(video_path, zip_path)
         prog_bar.update()
