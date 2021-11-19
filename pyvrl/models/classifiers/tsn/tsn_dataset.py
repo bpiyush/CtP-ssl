@@ -61,7 +61,7 @@ class TSNDataset(Dataset):
             imgs=DataContainer(img_tensor, stack=True, cpu_only=False)
         )
         if not self.test_mode:
-            gt_label = torch.LongTensor([video_info['label']]) - 1
+            gt_label = torch.LongTensor([video_info['label']]) - 2
             data['gt_labels'] = DataContainer(gt_label,
                                               stack=True,
                                               pad_dims=None,

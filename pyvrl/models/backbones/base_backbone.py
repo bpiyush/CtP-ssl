@@ -32,7 +32,7 @@ class BaseBackbone(nn.Module):
 
         """
         logger.info(f"Loading pretrained backbone from {pretrained}")
-        checkpoint = torch.load(pretrained)
+        checkpoint = torch.load(pretrained, map_location=torch.device('cpu'))
         # get state_dict from checkpoint
         if isinstance(checkpoint, OrderedDict):
             state_dict = checkpoint

@@ -31,6 +31,12 @@ def parse_args():
                              '(data/ by default)')
     parser.add_argument('--resume_from',
                         help='the checkpoint file to resume from')
+    parser.add_argument('--ckpt',
+                        help='the checkpoint file to start from')
+    parser.add_argument('--freeze_backbone',
+                        action='store_true',
+                        help='whether to freeze backbone during '
+                             'training')
     parser.add_argument('--validate',
                         action='store_true',
                         help='whether to evaluate the checkpoint during '
@@ -78,6 +84,10 @@ if __name__ == '__main__':
                 chk_epoch_list = [int(re.findall(r'\d+', fn)[0]) for fn in chk_name_list if fn.startswith('epoch')]
                 chk_epoch_list.sort()
                 cfg.resume_from = os.path.join(cfg.work_dir, f'epoch_{chk_epoch_list[-1]}.pth')
+    
+    # set checkpoint file to start from
+    if args.ckpt is not None:
+        cfg.model.backbone.pretrained = args.ckpt
 
     # setup data root directory
     if args.data_dir is not None:
@@ -115,7 +125,19 @@ if __name__ == '__main__':
         logger.info('Set random seed to {}'.format(args.seed))
         set_random_seed(args.seed)
 
+    # define the model
     model = build_model(cfg.model)
+
+    # freeze backbone
+    if args.freeze_backbone:
+        print("::: Freezing backbone ...")
+        for param in model.backbone.parameters():
+            param.requires_grad_(False)
+        for name, param in model.named_parameters():
+            print(f"::: {name}: requires_grad: {param.requires_grad}")
+
+    # define the dataset
+    cfg.data.videos_per_gpu = 16
     train_dataset = build_dataset(cfg.data.train)
 
     train_network(model,
