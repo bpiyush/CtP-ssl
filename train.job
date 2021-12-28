@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus=4
+#SBATCH --partition=gpu
+#SBATCH --time=100:00:00
+
+# Load modules for MPI and other parallel libraries
+module load 2021
+module load foss/2021a
+module load CUDA/11.3.1
+
+source activate ctp4
+
+srun python -c "import mmcv; print('MMCV Version: ', mmcv.__version__)"
+srun python -c "import torch; print('torch Version: ', torch.__version__)"
+
+srun python tools/train_net.py --cfg configs/ctp/r3d_18_ucf101/pretraining.py

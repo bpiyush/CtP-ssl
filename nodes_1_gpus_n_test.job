@@ -1,0 +1,42 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus=4
+#SBATCH --partition=gpu
+#SBATCH --time=100:00:00
+
+# Load modules for MPI and other parallel libraries
+module load 2021
+module load foss/2021a
+module load CUDA/11.3.1
+
+# activate environment
+source activate ctp4
+
+# copy the data
+# now=$(date +"%T")
+# echo "STARTED DATA COPY AT "$now
+# rsync -avzP ./data/ "$TMPDIR/data/"
+# now=$(date +"%T")
+# echo "FINISHED DATA COPY AT "$now
+
+# check package versions
+srun python -c "import mmcv; print('MMCV Version: ', mmcv.__version__)"
+srun python -c "import torch; print('torch Version: ', torch.__version__)"
+
+# CFG=./configs/ctp/r3d_18_ucf101/pretraining.py
+# CFG=./configs/ctp/r2plus1d_18_ucf101/ft_node_1_gpus_4_batchsize_64_workers_64.py
+# CFG=./configs/ctp/r2plus1d_18_ucf101/finetune_ucf101.py
+CFG=./configs/ctp/r2plus1d_18_ucf101/ft_ssl_benchmark_ctp_ckpt_on_val_set.py
+
+PORT=8000
+GPUS=4
+PYTHONPATH="$(dirname $0)":$PYTHONPATH \
+srun python -m torch.distributed.launch --nproc_per_node=$GPUS --master_port=$PORT \
+    ./tools/test_net.py \
+    --launcher pytorch ${@:3} \
+    --cfg $CFG \
+    --gpus $GPUS \
+    --checkpoint /scratch-shared/fmthoker/ssl_benchmark/checkpoints/CTP/Kinetics/pretext_checkpoint/r2p1d18_ctp_k400_epoch_90.pth
+    --progress
+
