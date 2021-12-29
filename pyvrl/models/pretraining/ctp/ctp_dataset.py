@@ -50,25 +50,29 @@ class CtPDataset(Dataset):
 
     def __getitem__(self, idx):
         video_info = self.data_source[idx]
-        # build video storage backend object
-        storage_obj = self.backend.open(video_info)
-        frame_inds = self.frame_sampler.sample(len(storage_obj))
-        num_segs, clip_len = frame_inds.shape
-        assert num_segs == 1
-        img_list = storage_obj.get_frame(frame_inds.reshape(-1))
-        img_tensor, trans_params = \
-            self.img_transform.apply_image(img_list,
-                                           return_transform_param=True)
-        gt_trajs = trans_params[self.mask_trans_idx]['traj_rois']
-        gt_trajs = torch.FloatTensor(gt_trajs)
+        try:
+            # build video storage backend object
+            storage_obj = self.backend.open(video_info)
+            frame_inds = self.frame_sampler.sample(len(storage_obj))
+            num_segs, clip_len = frame_inds.shape
+            assert num_segs == 1
+            img_list = storage_obj.get_frame(frame_inds.reshape(-1))
+            img_tensor, trans_params = \
+                self.img_transform.apply_image(img_list,
+                                            return_transform_param=True)
+            gt_trajs = trans_params[self.mask_trans_idx]['traj_rois']
+            gt_trajs = torch.FloatTensor(gt_trajs)
 
-        img_tensor = img_tensor.permute(1, 0, 2, 3).contiguous()
-        gt_weights = torch.ones((gt_trajs.size(0), gt_trajs.size(1))).float()
-        data = dict(
-            imgs=DC(img_tensor, stack=True, pad_dims=1, cpu_only=False),
-            gt_trajs=DC(gt_trajs, stack=True, pad_dims=1, cpu_only=False),
-            gt_weights=DC(gt_weights, stack=True, pad_dims=1, cpu_only=False)
-        )
-        storage_obj.close()
+            img_tensor = img_tensor.permute(1, 0, 2, 3).contiguous()
+            gt_weights = torch.ones((gt_trajs.size(0), gt_trajs.size(1))).float()
+            data = dict(
+                imgs=DC(img_tensor, stack=True, pad_dims=1, cpu_only=False),
+                gt_trajs=DC(gt_trajs, stack=True, pad_dims=1, cpu_only=False),
+                gt_weights=DC(gt_weights, stack=True, pad_dims=1, cpu_only=False)
+            )
+            storage_obj.close()
+        except:
+            print(f"Skipping {video_info} since the zip is not readable.")
+            return self[(idx+1) % len(self)]
 
         return data

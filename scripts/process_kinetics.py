@@ -82,15 +82,16 @@ if __name__ == '__main__':
         ann_file = ann_file[~ann_file.video_name.isin(missing)].reset_index()
 
         video_name_list = list(ann_file.video_name.values)
-        ann_file.label = ann_file.label.apply(lambda x: x.replace(" ", "_"))
+        ann_file.label = ann_file.label.apply(lambda x: x.replace(" ", "_").replace("(", "").replace(")","").replace("'", ""))
         video_label_list = list(ann_file.label.values)
+        video_class_list = [ids_map[x] for x in video_label_list]
 
         out_file = os.path.join(args.out_dir, 'annotations', f'{prefix}_split_1.txt')
         mmcv.mkdir_or_exist(os.path.dirname(out_file))
 
         with open(out_file, 'w') as f:
-            for video_name, video_label in zip(video_name_list, video_label_list):
-                f.write(f'{video_name} {video_label}\n')
+            for video_name, video_class in zip(video_name_list, video_class_list):
+                f.write(f'{video_name} {video_class}\n')
         all_video_name_list.extend(video_name_list)
         all_video_label_list.extend(video_label_list)
 

@@ -28,6 +28,7 @@ def build_3d_conv(block_type,
                   in_channels,
                   out_channels,
                   kernel_size,
+                  mid_channels=None,
                   stride=1,
                   padding=0,
                   dilation=1,
@@ -60,11 +61,14 @@ def build_3d_conv(block_type,
     _dict = OrderedDict()
     if block_type == '2.5d':
         # building block for R(2+1)D conv.
-        mid_channels = 3 * in_channels * out_channels * \
-                       kernel_size[1] * kernel_size[2]
-        mid_channels /= (in_channels * kernel_size[1] *
-                         kernel_size[2] + 3 * out_channels)
-        mid_channels = int(mid_channels)
+        # mid_channels = 3 * in_channels * out_channels * \
+        #                kernel_size[1] * kernel_size[2]
+        # mid_channels /= (in_channels * kernel_size[1] *
+        #                  kernel_size[2] + 3 * out_channels)
+        # mid_channels = int(mid_channels)
+        # mid_channels = (3 * in_channels * out_channels * kernel_size[1] * kernel_size[2]) // (in_channels * kernel_size[1] * kernel_size[2] + 3 * out_channels)
+        # print(mid_channels)
+        assert mid_channels is not None
 
         # build spatial convolution
         _dict['conv_s'] = nn.Conv3d(
@@ -137,8 +141,12 @@ class BasicBlock(nn.Module):
         temporal_stride = (2, ) if down_sampling_temporal else (1, )
         stride = temporal_stride + spatial_stride
 
+        # DEBUG
+        mid_channels = (3 * in_channels * out_channels * 3 * 3) // (in_channels * 3 * 3 + 3 * out_channels)
+
         self.conv1 = build_3d_conv(block_type=block_type,
                                    in_channels=in_channels,
+                                   mid_channels=mid_channels,
                                    out_channels=out_channels,
                                    kernel_size=[3, 3, 3],
                                    stride=stride,
@@ -148,6 +156,7 @@ class BasicBlock(nn.Module):
             self.bn1 = nn.BatchNorm3d(out_channels, eps=1e-3)
         self.conv2 = build_3d_conv(block_type=block_type,
                                    in_channels=out_channels,
+                                   mid_channels=mid_channels,
                                    out_channels=out_channels,
                                    kernel_size=[3, 3, 3],
                                    stride=[1, 1, 1],

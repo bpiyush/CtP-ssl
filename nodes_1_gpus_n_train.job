@@ -24,7 +24,8 @@ source activate ctp4
 srun python -c "import mmcv; print('MMCV Version: ', mmcv.__version__)"
 srun python -c "import torch; print('torch Version: ', torch.__version__)"
 
-CFG=./configs/ctp/r2plus1d_18_ucf101/pt_node_1_gpus_4_batchsize_64_workers_64.py
+# CFG=./configs/ctp/r2plus1d_18_ucf101/pt_node_1_gpus_4_batchsize_64_workers_64.py
+CFG=./configs/ctp/r2plus1d_18_kinetics/pretraining_snellius.py
 
 PORT=8000
 GPUS=4
